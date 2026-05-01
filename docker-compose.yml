@@ -1,0 +1,26 @@
+services:
+  iim-workbench:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: malwarebox/iim-workbench:local
+    container_name: iim-workbench
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:5000:5000"
+    environment:
+      IIM_CATALOG: /app/techniques/iim-techniques-v1.0.json
+    volumes:
+      - ./techniques:/app/techniques:ro
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/api/health', timeout=3).read()"
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

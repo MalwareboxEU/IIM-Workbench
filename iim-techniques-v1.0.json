@@ -1,0 +1,580 @@
+{
+  "$schema": "https://iim.malwarebox.eu/schema/iim-techniques-v1.0.json",
+  "spec_version": "1.0",
+  "catalog_version": "1.0.0",
+  "released": "2026-04-01",
+  "maintainer": {
+    "name": "Robin Dost",
+    "organization": "Malwarebox",
+    "url": "https://malwarebox.eu",
+    "contact": "research@malwarebox.eu"
+  },
+  "license": {
+    "spec": "CC-BY-4.0",
+    "spec_url": "https://creativecommons.org/licenses/by/4.0/",
+    "tooling": "MIT"
+  },
+  "scope": {
+    "description": "IIM techniques describe properties of adversary infrastructure itself — hosting, resolution, routing, gating, composition. Endpoint behavior (execution, persistence, defense evasion on host, file formats, process injection) is deliberately out of scope and covered by MITRE ATT&CK.",
+    "includes": [
+      "Where infrastructure is hosted",
+      "How infrastructure is resolved or reached",
+      "How traffic is routed through infrastructure",
+      "How access to infrastructure is gated",
+      "How deliverable artifacts are structurally composed"
+    ],
+    "excludes": [
+      "What executes on the victim host",
+      "How a binary persists on disk",
+      "Which process injection technique is used",
+      "How data is encrypted in memory",
+      "What registry keys are modified"
+    ],
+    "boundary_test": "If the technique describes what the adversary's infrastructure IS or HOW IT BEHAVES AS SERVED, it belongs in IIM. If it describes what happens after a payload lands on the victim, it belongs in ATT&CK."
+  },
+  "categories": {
+    "hosting": {
+      "code": "H",
+      "label": "Hosting",
+      "description": "Where and how adversary infrastructure is physically or logically hosted. Describes the substrate the operation runs on.",
+      "technique_range": "T001 – T006",
+      "count": 6
+    },
+    "resolution": {
+      "code": "R",
+      "label": "Resolution",
+      "description": "How names or locators are resolved to concrete network endpoints. Describes the discoverability and rotation of infrastructure.",
+      "technique_range": "T007 – T013",
+      "count": 7
+    },
+    "routing": {
+      "code": "X",
+      "label": "Routing",
+      "description": "How traffic flows between victim and terminal infrastructure. Describes intermediate layers that redirect, filter, or multiplex.",
+      "technique_range": "T014 – T018",
+      "count": 5
+    },
+    "gating": {
+      "code": "G",
+      "label": "Gating",
+      "description": "How access to infrastructure is restricted to intended victims. Describes filters that accept or deny requests before payload delivery.",
+      "technique_range": "T019 – T023",
+      "count": 5
+    },
+    "composition": {
+      "code": "C",
+      "label": "Composition",
+      "description": "How artifacts served by infrastructure are structurally composed at the transport layer. Describes container and exposure patterns.",
+      "technique_range": "T024 – T026",
+      "count": 3
+    }
+  },
+  "techniques": [
+    {
+      "id": "IIM-T001",
+      "name": "CDN Abuse",
+      "category": "hosting",
+      "short": "Serving adversary content from a legitimate CDN to gain reputation, TLS, and geographic distribution at no cost.",
+      "description": "The adversary hosts malicious artifacts on a commercial CDN (Cloudflare, Fastly, Akamai, AWS CloudFront, etc.) either by abusing free-tier accounts, compromising a legitimate origin, or exploiting misconfigured CDN tenancy. The shared-reputation effect makes domain-level blocking impractical because blocking the CDN hostname damages legitimate traffic.",
+      "why_infrastructure": "The CDN is the hosting substrate. The technique describes where the artifact physically lives and is served from, not what the artifact does on execution.",
+      "observable_indicators": [
+        "TLS certificate issued to CDN-operated hostname rather than adversary-owned domain",
+        "Payload served from *.cloudfront.net, *.b-cdn.net, *.fastly.net, or similar CDN-suffixed names",
+        "Short-lived CDN distributions that appear, serve payload, and disappear within 24-72 hours",
+        "Origin pull configured to attacker-controlled backend"
+      ],
+      "example": "Payload delivery via a free Cloudflare Workers subdomain that proxies to an attacker origin, taking the victim through legitimate Cloudflare TLS and IP space.",
+      "detection_notes": "Block by behavior and content, not by CDN hostname. Track new CDN distributions that serve executables or archive types flagged by policy. Pivot on origin pull targets where exposed.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T002",
+      "name": "Cloud Hosting",
+      "category": "hosting",
+      "short": "Using mainstream cloud providers (AWS, Azure, GCP, DigitalOcean, Hetzner) for command and control, staging, or payload delivery.",
+      "description": "Adversary infrastructure is deployed on commercial cloud IaaS or PaaS. Short-lived VPS instances, ephemeral storage buckets, and serverless functions provide low-cost geographic flexibility and blend with legitimate enterprise traffic. Takedown requires a cloud-provider abuse workflow that typically exceeds operational lifetime.",
+      "why_infrastructure": "The cloud tenant is the hosting environment. The technique describes the substrate, not what runs on the victim.",
+      "observable_indicators": [
+        "Command and control traffic to IP ranges owned by major cloud providers",
+        "Resolved hostnames in *.compute.amazonaws.com, *.azurewebsites.net, *.cloudapp.net patterns",
+        "Object storage URLs (s3.amazonaws.com, storage.googleapis.com) hosting payload files",
+        "High-volume short-lived VPS deployments clustered by billing address or ASN"
+      ],
+      "example": "Cobalt Strike team servers deployed on AWS EC2 instances in rotating regions, with payloads staged in S3 buckets.",
+      "detection_notes": "Cloud-provider ASNs cannot be blocked broadly. Detection relies on process-to-destination profiling and anomalous-egress detection.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T003",
+      "name": "Bulletproof Hosting",
+      "category": "hosting",
+      "short": "Hosting on providers that tolerate abuse reports and resist law enforcement cooperation.",
+      "description": "Infrastructure is hosted with providers (historically concentrated in certain jurisdictions) whose business model is deliberate non-response to abuse reports and takedown requests. These providers typically appear in specific ASN ranges with known operational histories.",
+      "why_infrastructure": "The technique describes the jurisdictional and operational properties of the hosting provider itself.",
+      "observable_indicators": [
+        "ASNs with historic concentration of malicious registrations",
+        "Provider unresponsive to standard abuse-contact workflow",
+        "Infrastructure persists for weeks or months despite public IOC publication",
+        "Shared ASN with multiple concurrent unrelated operations"
+      ],
+      "example": "Long-running C2 infrastructure on ASNs historically associated with cybercrime hosting tolerance, persisting through public blocklisting.",
+      "detection_notes": "Maintain a curated ASN-reputation list. Elevated scrutiny on traffic to ASNs with bulletproof-hosting history, even without specific IOC match.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T004",
+      "name": "Compromised Legitimate Host",
+      "category": "hosting",
+      "short": "Payload or C2 served from a legitimate but compromised server (WordPress, VPS, small-business site).",
+      "description": "Rather than establishing new infrastructure, the adversary compromises an existing legitimate site — typically a WordPress installation, a small-business PHP site, or an abandoned VPS — and uses it as delivery or C2 substrate. The legitimate parent domain inherits the compromised asset's reputation.",
+      "why_infrastructure": "The host is the infrastructure. The technique describes the substrate, even though the substrate was not created by the adversary.",
+      "observable_indicators": [
+        "Payload URLs on domains with unrelated legitimate primary content",
+        "Upload paths consistent with CMS-exploit patterns (/wp-content/uploads/, /uploads/)",
+        "TLS certificate mismatch between hosted content and domain purpose",
+        "Sudden appearance of executable or archive content on a long-lived domain"
+      ],
+      "example": "Gamaredon-aligned campaigns historically used compromised Ukrainian small-business WordPress sites as dead-drop resolvers.",
+      "detection_notes": "Reputation alone is insufficient. Behavioral indicators (new file types, unusual request patterns, certificate anomalies) identify compromise even on otherwise-reputable domains.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T005",
+      "name": "Ephemeral Worker / Function Hosting",
+      "category": "hosting",
+      "short": "Using serverless functions or edge workers (Cloudflare Workers, AWS Lambda, Deno Deploy) as short-lived delivery endpoints.",
+      "description": "The adversary deploys payload logic or C2 handlers as serverless functions. Lifetime is measured in hours or days rather than months. TLS, geographic distribution, and legitimate parent-provider reputation are inherited. Because the underlying IP is multi-tenant by definition, IP-based blocking is impractical.",
+      "why_infrastructure": "The serverless platform is the hosting substrate. The technique describes how and where the code runs, not what the code does.",
+      "observable_indicators": [
+        "Hostnames matching *.workers.dev, *.lambda-url.*.amazonaws.com, *.deno.dev",
+        "TLS certificates with worker-platform-specific SANs",
+        "Very short infrastructure lifetimes followed by full unreachability",
+        "High-density reuse of the same worker platform across unrelated operations"
+      ],
+      "example": "Payload retrieval logic deployed as a Cloudflare Worker that decrypts a remote blob and returns the result; the worker URL rotates every 24 hours.",
+      "detection_notes": "Treat worker-platform hostnames as inherently higher-risk for executable and script content. Block-by-content-type on these domains is more effective than block-by-domain.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T006",
+      "name": "Living-off-Trusted-Sites",
+      "category": "hosting",
+      "short": "Hosting payloads on widely-trusted third-party platforms (GitHub, Pastebin, Dropbox, Google Drive, Discord CDN, Telegram).",
+      "description": "The adversary places payload content on platforms so widely trusted that they are typically allowlisted by default. GitHub raw file URLs, Pastebin raw content, Discord attachment CDN, and Telegram file links are canonical examples. Blocking the platform damages legitimate usage at scale.",
+      "why_infrastructure": "The trusted platform is the hosting substrate. The technique describes where content physically lives, not what the content does.",
+      "observable_indicators": [
+        "Downloads from raw.githubusercontent.com, gist.githubusercontent.com, pastebin.com/raw/",
+        "cdn.discordapp.com/attachments/ URLs hosting executables or archives",
+        "api.telegram.org/file/ links outside expected application contexts",
+        "Short-form sharing URLs (bit.ly, goo.gl alternatives) masking trusted-site terminals"
+      ],
+      "example": "Gamaredon secondary payload staged on a GitHub gist; the raw URL is fetched by a first-stage loader.",
+      "detection_notes": "Policy-based content-type restrictions on trusted-platform downloads are more scalable than per-URL blocking. Monitor process-to-trusted-platform request profiles for anomalies.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T007",
+      "name": "Fast-Flux DNS",
+      "category": "resolution",
+      "short": "Single hostname resolves to a rapidly-rotating set of A records with very short TTLs.",
+      "description": "A single adversary-controlled hostname is served by an authoritative DNS server that returns a frequently-rotating pool of IP addresses, typically with TTLs under 300 seconds. The rotating IPs are often compromised residential or small-business systems acting as proxies. Takedown of any single IP does not affect hostname reachability.",
+      "why_infrastructure": "The technique is a property of the DNS resolution layer — the same name resolves differently over time. No endpoint behavior is implied.",
+      "observable_indicators": [
+        "TTL values consistently under 300 seconds on adversary hostnames",
+        "Large and rapidly-changing set of A records for a single hostname",
+        "Resolved IPs geographically dispersed and often in residential ASN ranges",
+        "Historical passive-DNS density significantly above baseline for the hostname class"
+      ],
+      "example": "A Gamaredon C2 hostname that resolves to a new IP every 2–5 minutes, drawing from a pool of 100+ compromised residential routers.",
+      "detection_notes": "Passive DNS history is the most reliable detection source. Alert on hostnames with very short TTLs combined with large A-record-history diversity.",
+      "attack_related": ["T1568.001"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T008",
+      "name": "Dynamic DNS Abuse",
+      "category": "resolution",
+      "short": "Using free Dynamic DNS subdomains (DuckDNS, No-IP, DynDNS) as C2 or delivery hostnames.",
+      "description": "Adversary-controlled hostnames are registered on free or low-cost Dynamic DNS services that provide subdomains on shared parent domains. The parent domains (duckdns.org, ddns.net, no-ip.org, etc.) have broad legitimate use, making parent-domain blocking disproportionate. Subdomain registration is anonymous and rapid.",
+      "why_infrastructure": "The technique describes the adversary's choice of DNS registration substrate — a property of how the name is resolved, not what the resolved endpoint does.",
+      "observable_indicators": [
+        "Hostnames matching *.duckdns.org, *.ddns.net, *.no-ip.org, *.hopto.org, *.zapto.org, and ~30 other common DDNS suffixes",
+        "Frequent registration-to-abandonment cycles (hours to days)",
+        "Mass-registration patterns (sequential or themed subdomain labels)",
+        "IP rotation independent of hostname lifetime"
+      ],
+      "example": "Gamaredon C2 endpoints almost exclusively use *.duckdns.org subdomains, rotated every 1–3 hours during active campaigns.",
+      "detection_notes": "Maintain a DDNS-parent-domain allowlist policy: traffic to DDNS parents is inherently higher-risk. Organizations with no legitimate DDNS use case should block these parents outright.",
+      "attack_related": ["T1568.002"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T009",
+      "name": "Domain Generation Algorithm (DGA)",
+      "category": "resolution",
+      "short": "Algorithmically generating large pools of candidate C2 hostnames from a shared seed.",
+      "description": "Malware and its operator share a deterministic algorithm that generates a large list of candidate hostnames from a seed (typically a date). The operator registers only a small subset; the malware attempts many and connects to whichever resolves. Takedown of known-registered domains does not prevent future connections.",
+      "why_infrastructure": "The technique describes the resolution strategy — how the hostname the malware contacts is determined. The endpoint behavior after connection is separate.",
+      "observable_indicators": [
+        "Burst DNS queries for many semantically-unrelated hostnames from a single host",
+        "Queries clustered in time, mostly NXDOMAIN with a small registered fraction",
+        "Hostname character distribution deviating from natural-language baseline",
+        "Matching known DGA families in string analysis"
+      ],
+      "example": "A variant that queries 2,048 pseudorandom .com hostnames per day derived from the system date; one to three are actually registered by the operator.",
+      "detection_notes": "DNS query entropy and NXDOMAIN density per host are the two canonical detection features. Pair with string-based DGA-family classifiers.",
+      "attack_related": ["T1568.002"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T010",
+      "name": "Disposable Domain Registration",
+      "category": "resolution",
+      "short": "Registering newly-created domains with short lifetimes specifically for a single campaign.",
+      "description": "The adversary registers fresh domains hours to days before a campaign, uses them briefly, and abandons them. Registration typically uses privacy protection, prepaid payment methods, and rotating registrar accounts. The domain's novelty means no reputation history exists at time of use.",
+      "why_infrastructure": "The technique describes the domain lifecycle as a resolution substrate — a property of how the name exists, independent of what is served from it.",
+      "observable_indicators": [
+        "Domain-creation date within 7 days of observed use (NRD signal)",
+        "WHOIS privacy protection on all registrations",
+        "Common registrar concentration across unrelated domains in the same operation",
+        "Very low passive-DNS query volume followed by sudden campaign burst"
+      ],
+      "example": "A phishing campaign that registers 15 themed domains one week before launch, sends all lures within 48 hours, and lets the domains lapse.",
+      "detection_notes": "Newly-registered domain (NRD) feeds are the most reliable signal. Many organizations benefit from blocking or quarantining inbound connections to domains under 7 or 30 days old outright.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T011",
+      "name": "Domain Rotation",
+      "category": "resolution",
+      "short": "Continuous cycling through multiple hostnames within an active campaign to defeat IOC-based blocking.",
+      "description": "Rather than single-use disposable domains, the adversary maintains a pool of pre-registered domains and cycles the operational hostname every few minutes to hours. Malware either carries the full pool or fetches the current active hostname via a dead-drop resolver. Burnout of specific hostnames via IOC publication is expected and planned for.",
+      "why_infrastructure": "The technique describes the temporal property of the resolution substrate — which hostname is operational at a given time.",
+      "observable_indicators": [
+        "Observation of the same campaign using different hostnames in different time windows",
+        "Hostnames share infrastructure overlap (IP, ASN, registrar, cert fingerprint)",
+        "Short active period per hostname (hours) followed by permanent disuse",
+        "Malware binary contains or retrieves a list of candidate hostnames"
+      ],
+      "example": "Gamaredon delivery domains rotate every 1–3 hours during active campaigns; the current active hostname is published to a Telegram channel used as a dead-drop resolver.",
+      "detection_notes": "Track hostname groups by shared infrastructure fingerprints rather than individually. A rotating pool has stable backend properties even as hostnames change.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T012",
+      "name": "Shared TLS Certificate Reuse",
+      "category": "resolution",
+      "short": "Reusing identical or distinctively-patterned TLS certificates across multiple operational hostnames.",
+      "description": "The adversary uses the same TLS certificate (by fingerprint, issuer, SAN structure, or generation pattern) across many hostnames. This enables infrastructure clustering by certificate, even when hostname rotation is aggressive. Often a byproduct of infrastructure automation using the same ACME or private-CA workflow.",
+      "why_infrastructure": "The technique describes a property of the TLS substrate that enables identification of shared operational backbones.",
+      "observable_indicators": [
+        "Identical SHA-256 cert fingerprints observed on unrelated-looking hostnames",
+        "Distinctive issuer patterns (e.g., Let's Encrypt + a specific ACME automation signature)",
+        "Subject-Alternative-Name fields containing many unrelated hostnames",
+        "Common self-signed cert subjects reused across infrastructure"
+      ],
+      "example": "Cobalt Strike team servers historically deployable with default self-signed certificates having identifiable subject fields; clustering by cert SHA1 reveals the entire operator's fleet.",
+      "detection_notes": "Certificate Transparency log correlation and JARM/JA3-style TLS fingerprinting are the primary detection surfaces.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T013",
+      "name": "Dead-Drop Resolver",
+      "category": "resolution",
+      "short": "Using legitimate third-party platforms (social media, code hosts, pastebins) to publish the current operational endpoint.",
+      "description": "Malware does not know its C2 address at compile time. Instead, it fetches the current address from a legitimate third-party platform — a specific tweet, a GitHub gist, a Telegram channel message, a Pastebin paste, a Bitbucket snippet. The published content is typically obfuscated but deterministically decodable by the malware. Rotating the C2 means updating the post, not rebuilding the malware.",
+      "why_infrastructure": "The technique describes how the hostname is resolved to a concrete endpoint via an indirection layer. It is a property of the resolution substrate, not of what happens after resolution.",
+      "observable_indicators": [
+        "Process-to-legitimate-platform requests that fetch small amounts of text followed by new connections elsewhere",
+        "Obfuscated strings (base64, hex, custom encoding) in posts on platforms rarely used by the process",
+        "Periodic fetches from the same specific URL without visible legitimate use",
+        "Short-lived platform accounts with minimal content beyond the dead drop"
+      ],
+      "example": "Gamaredon samples periodically fetch a specific Telegram channel's most recent message, base64-decode it, and extract the current active DuckDNS hostname for C2.",
+      "detection_notes": "Behavioral: a non-browser process contacting social/code platforms is inherently anomalous. Request-response-size signatures and temporal patterns identify dead-drop use even when the specific platform is unknown.",
+      "attack_related": ["T1102.001"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T014",
+      "name": "Multi-Hop Redirect Chain",
+      "category": "routing",
+      "short": "Traffic is redirected through two or more intermediate hosts before reaching the terminal payload.",
+      "description": "The initial URL in a lure redirects to an intermediate, which redirects again, potentially multiple times, before the terminal delivery endpoint. Each hop may apply its own filtering, tracking, or time-window logic. Intermediate hops are often legitimate URL shorteners, ad networks, or compromised hosts.",
+      "why_infrastructure": "The technique describes the routing topology — how a request travels through infrastructure, independent of what is served at the terminal.",
+      "observable_indicators": [
+        "HTTP 30x chains of length ≥ 3",
+        "Cross-domain redirects spanning unrelated registrars/hosts",
+        "Meta-refresh or JavaScript-based redirects interleaved with HTTP redirects",
+        "Redirect targets changing based on request time or session"
+      ],
+      "example": "A phishing email link goes to a URL shortener, which redirects to a compromised WordPress site, which meta-refreshes to a Cloudflare Worker, which finally serves the payload.",
+      "detection_notes": "Unroll redirect chains to terminals in transit-layer inspection. Alert on chain length and cross-boundary hops rather than on any single hop.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T015",
+      "name": "Client-Side Redirect",
+      "category": "routing",
+      "short": "Using JavaScript, meta-refresh, or DOM manipulation to route the victim without server-side redirect visibility.",
+      "description": "Rather than HTTP-layer redirects, the adversary uses client-side mechanisms — JavaScript window.location, meta-refresh tags, form auto-submission — to route the victim to the next stage. This evades HTTP-redirect inspection tools and is typically invisible to non-browser clients performing reputation checks.",
+      "why_infrastructure": "The technique describes the routing mechanism employed between infrastructure nodes, distinct from the HTTP-layer redirects of T014.",
+      "observable_indicators": [
+        "HTML pages consisting primarily of a single script or meta tag that sets a new location",
+        "Routing behavior differs between headless and full-browser fetches",
+        "Empty or benign server-side response bodies coupled with active client-side logic",
+        "Document titles and content unrelated to the final payload context"
+      ],
+      "example": "The initial delivery URL serves a minimal HTML shell whose only content is a script that sets window.location to the real target, invisible to curl-based sandboxing.",
+      "detection_notes": "Full-DOM rendering in sandbox analysis is required. Purely HTTP-layer redirect tracking is insufficient.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T016",
+      "name": "Public URL Shorteners / Redirectors",
+      "category": "routing",
+      "short": "Using legitimate public URL-shortening services as an intermediate routing hop.",
+      "description": "The adversary uses public shorteners (bit.ly, tinyurl.com, t.co, lnkd.in, buff.ly, and hundreds of similar services) as an intermediate hop. The shortener inherits trust; the terminal redirect can be updated without changing the lure. Blocking the shortener service is disproportionate at scale.",
+      "why_infrastructure": "The shortener is a routing intermediary — a structural position between entry and terminal, independent of what the terminal serves.",
+      "observable_indicators": [
+        "Shortener-service hostnames in lure URLs",
+        "HTTP 30x from shortener to domains with no prior reputation",
+        "Shorteners configured with very recent terminal targets (shortener-internal creation date in response)",
+        "Shortener targets rotating over time for the same short URL where the service permits"
+      ],
+      "example": "A phishing email contains a bit.ly link; the terminal target is an attacker-controlled domain registered four days earlier.",
+      "detection_notes": "Unroll shortener URLs at message ingress. Treat unrolled terminals by their own merit, not by the shortener's reputation.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T017",
+      "name": "Traffic Distribution System (TDS)",
+      "category": "routing",
+      "short": "A rule-based dispatcher that routes incoming traffic to different terminals based on victim attributes.",
+      "description": "A TDS is a server component that inspects the incoming request (User-Agent, source IP, Referer, time, session tokens) and routes to one of several terminal targets — or to a benign decoy. Commercial crimeware TDS platforms (Keitaro, BlackTDS-family historically) are used; custom TDS are also common. Defenders receive different responses than intended victims.",
+      "why_infrastructure": "The TDS is a routing layer, structurally positioned between entry and terminal. Its decision logic is an infrastructure property.",
+      "observable_indicators": [
+        "Identical URL returning dramatically different responses to different request contexts",
+        "Response switching between benign decoy content and payload based on source",
+        "Server-side fingerprinting evident in response headers or body variation",
+        "Well-known TDS application signatures in response structure"
+      ],
+      "example": "A malvertising chain lands on a TDS URL that delivers an exploit kit to vulnerable browsers, a tech-support-scam page to others, and a blank response to security-vendor IP ranges.",
+      "detection_notes": "Multi-perspective crawling (varied User-Agent, IP, time) reveals TDS behavior. A single fetch is insufficient to characterize infrastructure behind a TDS.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T018",
+      "name": "Third-Party Application as C2",
+      "category": "routing",
+      "short": "Using legitimate third-party application APIs (Telegram, Discord, Slack, Trello, cloud storage) as the C2 channel itself.",
+      "description": "The adversary does not operate their own C2 server. Instead, they use a legitimate application's API as the message bus between malware and operator. A Telegram bot, a Discord webhook, a Slack app, a cloud-storage shared folder — all have been used. The operator posts commands; malware polls for updates; results are posted back. Takedown requires platform cooperation, not network action.",
+      "why_infrastructure": "The third-party application IS the C2 infrastructure. The technique describes the routing substrate, not what malware does with received commands.",
+      "observable_indicators": [
+        "Non-user-application processes making API calls to api.telegram.org, discord.com/api, *.slack.com/api",
+        "Authentication tokens and bot identifiers embedded in malware samples",
+        "Polling patterns inconsistent with user-driven application use",
+        "Large response-body sizes from platform API endpoints not typical of UI interactions"
+      ],
+      "example": "A crimeware family uses a Telegram bot as C2; the bot token is embedded in the binary, and malware polls getUpdates every 60 seconds for operator commands.",
+      "detection_notes": "Process-to-platform-API request profiling. A non-browser, non-chat-app process calling platform APIs is inherently anomalous.",
+      "attack_related": ["T1102.002"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T019",
+      "name": "Geofenced Delivery",
+      "category": "gating",
+      "short": "Payload served only to requests originating from specific geographic regions.",
+      "description": "The delivery server inspects the source IP's GeoIP mapping and returns the actual payload only to requests from the intended victim region. Requests from other regions receive benign content, empty responses, or errors. This defeats the large majority of automated analysis, which runs from cloud infrastructure outside the targeting region.",
+      "why_infrastructure": "Gating happens at the infrastructure layer before payload delivery. It is a property of how the server responds to requests, not of the payload itself.",
+      "observable_indicators": [
+        "Different response content for the same URL fetched from different geographic sources",
+        "Empty or error responses from cloud analyst infrastructure; real payload from residential in-region IPs",
+        "GeoIP-database lookups observable in server behavior",
+        "Reporting from in-region victims does not match out-of-region analysis"
+      ],
+      "example": "Gamaredon payloads are served only to requests with Ukrainian GeoIP resolution. Analysts fetching the same URL from western European or US cloud IPs receive empty responses.",
+      "detection_notes": "In-region victim telemetry is the only reliable source. Analyst fetches must originate from representative residential geographies to observe delivery.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T020",
+      "name": "User-Agent / Client Filtering",
+      "category": "gating",
+      "short": "Payload served only to requests presenting specific User-Agent or client-fingerprint characteristics.",
+      "description": "The server inspects the User-Agent header, TLS fingerprint (JA3/JA4), HTTP/2 fingerprint, or other client characteristics, and delivers the real payload only when the request matches the intended-victim profile. Security-vendor crawlers, common automation frameworks, and headless browsers are excluded.",
+      "why_infrastructure": "The filter runs at the infrastructure layer. It describes how the infrastructure chooses to respond, not what the payload does.",
+      "observable_indicators": [
+        "Different content based on User-Agent string",
+        "Empty/benign responses to headless-browser TLS fingerprints",
+        "JA3/JA4 hashes acting as response gates",
+        "Requests from known security-vendor User-Agents receiving decoy content"
+      ],
+      "example": "A phishing landing page serves the real credential form only to User-Agent strings matching recent Edge-on-Windows-10 combinations; curl, wget, and headless Chrome receive a benign placeholder.",
+      "detection_notes": "Multi-fingerprint crawling (varied UA and TLS stacks) in analysis pipelines. Single-crawler analysis systematically under-observes filtered infrastructure.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T021",
+      "name": "Request Fingerprinting Gate",
+      "category": "gating",
+      "short": "Payload served only to requests whose headers, body, or sequence match a specific fingerprint known to the malware client.",
+      "description": "Beyond User-Agent, the server inspects additional request properties — exact header casing, ordering, body length, cookie presence, specific custom headers — and responds with the real payload only on fingerprint match. The fingerprint is typically unique to the custom client built by the adversary.",
+      "why_infrastructure": "The fingerprint check is an infrastructure-layer gate before payload delivery. It is a property of the server, not of the payload.",
+      "observable_indicators": [
+        "Response depends on subtle header variations invisible to most analysis tools",
+        "Distinctive custom headers or cookie names required for full response",
+        "Response body lengths vary sharply between fingerprint-match and non-match",
+        "Client code reveals the fingerprint expected by the server"
+      ],
+      "example": "Gamaredon HTA loaders use the msxml2.xmlhttp ActiveX control whose default request produces a distinctive Content-Length signature; the server serves payload only to requests matching that signature exactly.",
+      "detection_notes": "Observed request-response pairs from real infected hosts are the most reliable source. Analyst replay must preserve exact header fidelity.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T022",
+      "name": "Time-Window Gating",
+      "category": "gating",
+      "short": "Payload served only during specific time windows; off-window requests receive benign responses.",
+      "description": "The server enforces time-of-day, day-of-week, or absolute-date windows during which the real payload is available. Outside the window, requests receive benign or empty content. Windows are often aligned with expected victim working hours in the target region, maximizing real-user hits while minimizing analyst-sandbox hits (which tend to run continuously).",
+      "why_infrastructure": "The window is applied at the infrastructure layer before delivery. It is a property of server behavior, not of the payload.",
+      "observable_indicators": [
+        "Same URL delivers different content at different times of day",
+        "Payload availability aligns with target-region business hours",
+        "Post-campaign fetches return empty/decoy even when the domain is still live",
+        "Analysis timestamps correlate with empty responses more than in-hours fetches"
+      ],
+      "example": "A business-email-compromise landing page serves the real credential harvester only on weekdays 08:00–18:00 target-region local time; evening and weekend fetches receive a 404.",
+      "detection_notes": "Continuous 24/7 crawling with correlated timestamps is required to characterize windowing. A single-time analysis misses the window.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T023",
+      "name": "Single-Use Token Gating",
+      "category": "gating",
+      "short": "Payload served only on first access with a valid per-victim token; subsequent accesses return nothing.",
+      "description": "The delivery URL contains a per-victim token (typically in the path or a query parameter). The server tracks tokens that have been redeemed; once redeemed, the URL returns empty or benign content forever. This ensures each lure is delivered exactly once to the intended victim and cannot be replayed by any analyst who obtains the URL after the fact.",
+      "why_infrastructure": "Token validation happens at the infrastructure layer before payload delivery. It is a server-state property, not a payload property.",
+      "observable_indicators": [
+        "URL path or query contains a high-entropy token unique per recipient",
+        "Second fetch of the same URL returns different content from first fetch",
+        "Server-side logs indicate token-consumption state",
+        "URLs harvested from inboxes post-campaign return empty"
+      ],
+      "example": "A spearphish recipient clicks a URL like /download/4a7f9e2b2c8d/; the server serves the payload on first request and returns 404 on all subsequent requests, including by the same victim.",
+      "detection_notes": "Early-stage harvesting of URLs from targeted inboxes, or reconstruction of the token-generation scheme from samples, are the only reliable paths to analyzing the terminal payload.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T024",
+      "name": "Archive Container Delivery",
+      "category": "composition",
+      "short": "Payload delivered inside a compressed archive (RAR, ZIP, 7z, ISO, IMG) to bypass transport-layer content inspection.",
+      "description": "The delivered artifact is an archive whose payload files are only visible after extraction. Many email gateways, proxies, and network-layer scanners do not recursively inspect archives — particularly password-protected or large archives. ISO and IMG formats additionally bypass Mark-of-the-Web propagation on some Windows versions.",
+      "why_infrastructure": "The technique describes the structural composition of the delivered artifact at the transport layer. It is not about what happens when the payload executes — it is about how the payload is wrapped for delivery.",
+      "observable_indicators": [
+        "Email attachments or downloads with archive extensions containing executables or scripts",
+        "Password-protected archives with password provided in the lure text",
+        "ISO/IMG attachments in email gateways (atypical for legitimate business mail)",
+        "Archive contents not scannable due to format or encryption"
+      ],
+      "example": "Gamaredon overwhelmingly uses RAR archives containing HTA droppers as the initial delivery vector. The RAR bypasses basic content inspection; the HTA bypasses Mark-of-the-Web on extraction.",
+      "detection_notes": "Policy-level archive-type restrictions on inbound email. Recursive archive inspection at gateway where possible. Block ISO/IMG attachments in email for most user bases.",
+      "attack_related": ["T1027.002"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T025",
+      "name": "Nested Container Delivery",
+      "category": "composition",
+      "short": "Payload wrapped in multiple layers of containers (archive-in-archive, document-in-archive-in-document) to evade recursive inspection.",
+      "description": "Rather than a single container, the adversary uses multiple nested containers — a ZIP inside an ISO, a RAR inside a PDF, an Office document with an embedded archive containing another embedded archive. Each layer consumes inspection budget; scanners configured to stop at depth N miss content at depth N+1.",
+      "why_infrastructure": "The technique describes the structural composition of the delivered artifact. It is a property of how the artifact is packaged, not of what the payload does once extracted.",
+      "observable_indicators": [
+        "Archives containing other archives as their primary content",
+        "Office documents with embedded OLE objects that are themselves archives",
+        "PDF attachments containing embedded files that are archives",
+        "Recursive-extraction depth exceeding typical legitimate use"
+      ],
+      "example": "A lure email contains a PDF attachment; the PDF has an embedded ZIP; the ZIP contains an ISO; the ISO contains the actual LNK shortcut and payload. Three layers of extraction before reaching executable content.",
+      "detection_notes": "Configure recursive archive inspection with sufficient depth (typically 5+) and alert on artifacts requiring more than two extraction layers to reveal executable content.",
+      "attack_related": ["T1027.002"],
+      "introduced_in": "1.0.0"
+    },
+    {
+      "id": "IIM-T026",
+      "name": "Open Directory Exposure",
+      "category": "composition",
+      "short": "Payload server has directory indexing enabled, exposing staging structure to anyone who navigates to parent paths.",
+      "description": "The adversary's delivery or staging server has directory listing enabled — either by misconfiguration or deliberate operational sloppiness. Navigating to the parent directory of the delivery URL reveals the full directory structure, often including tooling, staging binaries, logs, and victim-specific folders. Researchers use this extensively to map campaigns.",
+      "why_infrastructure": "The technique describes a property of the hosting infrastructure's configuration, specifically the exposure of its structural content.",
+      "observable_indicators": [
+        "HTTP GET on parent path returns directory listing rather than 403/404",
+        "Index-of pages appearing in passive HTTP indexes (urlscan, shodan)",
+        "Predictable filename patterns discoverable via listing",
+        "Server software (Apache, nginx) default directory-listing formats visible"
+      ],
+      "example": "A staging server serves /files/loader_v4.hta. Navigating to /files/ reveals loader_v1.hta through loader_v4.hta, build scripts, and several operator-named subdirectories.",
+      "detection_notes": "Open-directory scanners (e.g., urlscan directory-listing heuristics) surface these routinely. Parent-path traversal in analysis workflows often reveals the full operational scope of a campaign.",
+      "attack_related": [],
+      "introduced_in": "1.0.0"
+    }
+  ],
+  "technique_index": {
+    "by_category": {
+      "hosting": ["IIM-T001", "IIM-T002", "IIM-T003", "IIM-T004", "IIM-T005", "IIM-T006"],
+      "resolution": ["IIM-T007", "IIM-T008", "IIM-T009", "IIM-T010", "IIM-T011", "IIM-T012", "IIM-T013"],
+      "routing": ["IIM-T014", "IIM-T015", "IIM-T016", "IIM-T017", "IIM-T018"],
+      "gating": ["IIM-T019", "IIM-T020", "IIM-T021", "IIM-T022", "IIM-T023"],
+      "composition": ["IIM-T024", "IIM-T025", "IIM-T026"]
+    },
+    "total_count": 26
+  },
+  "governance": {
+    "proposal_process": "New techniques are proposed via GitHub pull request against the techniques/ directory. Each proposal must include: (a) a boundary-test justification demonstrating the proposed technique describes infrastructure and not endpoint behavior; (b) at least two observed-in-the-wild examples from public or analyst sources; (c) proposed category assignment with rationale. Proposals conflicting with the scope boundary against ATT&CK are rejected by design.",
+    "versioning_policy": "The catalog follows semantic versioning. Major versions (2.0, 3.0) may reorganize categories or renumber techniques. Minor versions (1.1, 1.2) may add new techniques with new IDs without renumbering existing ones. Patch versions (1.0.x) contain only text corrections, clarifications, and example additions.",
+    "deprecation_policy": "Techniques are never removed from the catalog. Deprecation adds a 'deprecated' field with a rationale and a 'superseded_by' reference to the replacement technique(s). Deprecated techniques remain in the catalog for historical annotation compatibility.",
+    "stability_commitment": "IDs (IIM-T###) are stable across catalog lifetime. Once assigned, an ID never refers to a different technique, even after deprecation."
+  },
+  "relationship_to_other_frameworks": {
+    "mitre_attack": {
+      "relationship": "complementary",
+      "description": "IIM describes infrastructure; ATT&CK describes endpoint behavior. Both axes are annotated independently on the same campaign. The attack_related field on techniques references ATT&CK IDs that are conceptually adjacent but not equivalent — they describe what happens after infrastructure is reached, not the infrastructure itself."
+    },
+    "stix": {
+      "relationship": "serializable",
+      "description": "IIM chains and patterns serialize to STIX 2.1 Infrastructure, Indicator, and Relationship objects losslessly. STIX-to-IIM import is partial: STIX lacks role semantics, ordered chains, and structured infrastructure techniques, so the import is an enrichment workflow with analyst-judgment fields marked needs_review."
+    },
+    "diamond_model": {
+      "relationship": "refinement",
+      "description": "IIM is a structured vocabulary for the Infrastructure vertex of the Diamond Model. Where the Diamond Model establishes Infrastructure as one of four analytical dimensions, IIM provides the grammar — roles, relations, techniques — to populate that dimension with structured content."
+    },
+    "cyber_kill_chain": {
+      "relationship": "orthogonal",
+      "description": "The Cyber Kill Chain describes temporal phases of intrusion. IIM describes structural composition within each phase. A Delivery-phase chain can be annotated with IIM techniques describing how delivery infrastructure is composed."
+    },
+    "ioc_feeds": {
+      "relationship": "supersedes",
+      "description": "Traditional IOC feeds publish point-in-time artifacts that decay within days. IIM pattern feeds publish structural descriptions of adversary infrastructure that continue to match as specific IOCs rotate. An IIM pattern subsumes an unbounded set of future IOCs that follow the same structural pattern."
+    }
+  }
+}
