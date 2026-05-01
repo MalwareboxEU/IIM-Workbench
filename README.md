@@ -38,6 +38,7 @@ IIM Workbench provides:
 - STIX 2.1 import with review metadata
 - Interactive chain and pattern visualization
 - Local API endpoints for validation, catalog access, and export workflows
+- Docker deployment for isolated local operation
 
 ## Why this exists
 
@@ -49,12 +50,91 @@ It is not intended to replace STIX, ATT&CK, or IOC feeds. It complements them by
 
 ## Installation
 
+You can run IIM Workbench directly with Python or inside Docker.
+
 Clone the repository:
 
 ```bash
 git clone https://github.com/MalwareboxEU/IIM-Workbench.git
 cd IIM-Workbench
 ```
+
+## Docker deployment
+
+The recommended local deployment method is Docker Compose.
+
+Build the image:
+
+```bash
+docker compose build
+```
+
+Start the Workbench:
+
+```bash
+docker compose up -d
+```
+
+Open the local interface:
+
+```text
+http://127.0.0.1:5000
+```
+
+Show logs:
+
+```bash
+docker compose logs -f
+```
+
+Stop the container:
+
+```bash
+docker compose down
+```
+
+The Compose setup binds the Workbench to localhost only:
+
+```yaml
+ports:
+  - "127.0.0.1:5000:5000"
+```
+
+This keeps the service local to the host. Change this only if you intentionally want to expose the Workbench to another network.
+
+### Docker without Compose
+
+You can also build and run the container manually:
+
+```bash
+docker build -t iim-workbench .
+```
+
+```bash
+docker run --rm -p 127.0.0.1:5000:5000 iim-workbench
+```
+
+To mount a local technique catalog directory:
+
+```bash
+docker run --rm \
+  -p 127.0.0.1:5000:5000 \
+  -v "$PWD/techniques:/app/techniques:ro" \
+  -e IIM_CATALOG=/app/techniques/iim-techniques-v1.0.json \
+  iim-workbench
+```
+
+### Docker image behavior
+
+The container:
+
+- Runs the Flask app on `0.0.0.0:5000` inside the container
+- Publishes the service to `127.0.0.1:5000` on the host when using the provided Compose file
+- Runs as an unprivileged user
+- Uses `/app/techniques/iim-techniques-v1.0.json` as the default catalog path
+- Includes a healthcheck against `/api/health`
+
+## Python deployment
 
 Create a virtual environment:
 
@@ -132,6 +212,19 @@ The Workbench loads the IIM technique catalog from:
 
 ```text
 ./techniques/iim-techniques-v1.0.json
+```
+
+When running with Docker, the default catalog path inside the container is:
+
+```text
+/app/techniques/iim-techniques-v1.0.json
+```
+
+The provided Compose file mounts the local `./techniques` directory read-only:
+
+```yaml
+volumes:
+  - ./techniques:/app/techniques:ro
 ```
 
 If the catalog is not found, the application still starts with a minimal embedded fallback catalog. This allows the interface and validator to run, but full technique validation requires the real catalog.
@@ -277,6 +370,12 @@ curl -s http://127.0.0.1:5000/api/export/stix \
   -d @chain.json > bundle.json
 ```
 
+When running through Docker Compose, the same API is available on the host at:
+
+```text
+http://127.0.0.1:5000
+```
+
 ## STIX 2.1 export
 
 The Workbench maps IIM chains into STIX 2.1 bundles using:
@@ -314,6 +413,10 @@ Recommended layout:
 IIM-Workbench/
 ├── README.md
 ├── LICENSE
+├── Dockerfile
+├── docker-compose.yml
+├── .dockerignore
+├── requirements.txt
 ├── iim_workbench.py
 ├── iim_stix.py
 ├── workbench-logo.svg
@@ -323,11 +426,18 @@ IIM-Workbench/
 
 ## Requirements
 
-Required:
+For Python deployment:
 
 ```text
 Python 3.10+
 Flask
+```
+
+For Docker deployment:
+
+```text
+Docker
+Docker Compose
 ```
 
 Optional:
@@ -342,13 +452,21 @@ The optional `iim_stix.py` module enables the extended STIX import and export pa
 
 The Workbench is intended to run locally.
 
-Default bind address:
+Default Python bind address:
 
 ```text
 127.0.0.1
 ```
 
-Only bind to `0.0.0.0` if you know why you need it and have placed the service behind appropriate access controls.
+Default Docker Compose host binding:
+
+```text
+127.0.0.1:5000
+```
+
+The container listens on `0.0.0.0` internally because that is required for Docker port publishing. The provided Compose file still exposes it only on localhost.
+
+Only bind to `0.0.0.0` on the host if you know why you need it and have placed the service behind appropriate access controls.
 
 ## Related links
 
