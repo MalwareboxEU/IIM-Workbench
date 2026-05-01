@@ -704,7 +704,7 @@ INDEX_HTML = r"""<!doctype html>
   }
   .tab {
     padding: 14px 22px; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--bone-darker); cursor: pointer; border-bottom: 2px solid transparent;
+    color: white; cursor: pointer; border-bottom: 2px solid transparent;
     transition: all 0.2s; user-select: none;
   }
   .tab:hover { color: var(--bone-dim); }
@@ -742,7 +742,7 @@ INDEX_HTML = r"""<!doctype html>
   }
   .card-head h3 .badge {
     font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.2em;
-    padding: 2px 8px; border: 1px solid var(--ink); color: var(--bone-darker); text-transform: uppercase;
+    padding: 2px 8px; border: 1px solid var(--ink); color: white; text-transform: uppercase;
   }
   .card-actions { display: flex; gap: 6px; }
 
@@ -750,7 +750,7 @@ INDEX_HTML = r"""<!doctype html>
   .field { margin-bottom: 12px; }
   .field label {
     display: block; font-size: 9px; letter-spacing: 0.25em;
-    text-transform: uppercase; color: var(--bone-darker); margin-bottom: 6px;
+    text-transform: uppercase; color: white; margin-bottom: 6px;
   }
   input[type="text"], select, textarea {
     width: 100%; background: var(--abyss); border: 1px solid var(--ink);
@@ -1908,6 +1908,7 @@ async function init() {
 
   // Set default interop direction
   interopSetDir('export');
+  validatorMode('chain');
 
   updateOutput();
 }
@@ -2201,7 +2202,20 @@ async function runValidation() {
       `<div class="validation invalid"><h4>✗ Invalid JSON</h4><p>${escapeHtml(e.message)}</p></div>`;
     return;
   }
-  const endpoint = state.validatorMode === 'pattern' ? '/api/validate/pattern' : '/api/validate/chain';
+
+  // Auto-detect type from JSON shape (same heuristic as vizLoadData)
+  const looksLikePattern = parsed.pattern_id !== undefined && Array.isArray(parsed.shape);
+  const looksLikeChain   = Array.isArray(parsed.entities) && Array.isArray(parsed.chain);
+
+  let mode = state.validatorMode;
+  if (looksLikePattern && !looksLikeChain)      mode = 'pattern';
+  else if (looksLikeChain && !looksLikePattern) mode = 'chain';
+  // ambiguous or unrecognized → respect manual toggle
+
+  // Sync the toggle so the user sees which validator actually ran
+  validatorMode(mode);
+
+  const endpoint = mode === 'pattern' ? '/api/validate/pattern' : '/api/validate/chain';
   const res = await fetch(endpoint, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(parsed),
@@ -2209,7 +2223,6 @@ async function runValidation() {
   const data = await res.json();
   renderValidation(data, 'validator-result');
 }
-
 // =========================================================================
 // TECHNIQUES TAB
 // =========================================================================
