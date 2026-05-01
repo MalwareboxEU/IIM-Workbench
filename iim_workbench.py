@@ -88,7 +88,7 @@ def load_catalog(path: str | None = None) -> dict:
                 print(f"[catalog] failed to load {p}: {e}", file=sys.stderr)
 
     print(
-        "[catalog] NOT FOUND — running with embedded minimal catalog. "
+        "[catalog] NOT FOUND - running with embedded minimal catalog. "
         "Provide the full catalog via --catalog or IIM_CATALOG env var.",
         file=sys.stderr
     )
@@ -655,7 +655,7 @@ INDEX_HTML = r"""<!doctype html>
     --role-entry: #8ec7ff; --role-redirector: #b39dff;
     --role-staging: #3ad0a8; --role-payload: #ff7a5c; --role-c2: #ffb454;
 
-    /* System font stacks — zero external loads */
+    /* System font stacks - zero external loads */
     --font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
     --font-serif: ui-serif, Georgia, 'Times New Roman', 'Nimbus Roman', serif;
   }
@@ -1207,10 +1207,10 @@ INDEX_HTML = r"""<!doctype html>
   .viz-popover .pop-close:hover { color: var(--coral); }
 
   /* ====================================================================
-     MOBILE RESPONSIVE — tablet & phone breakpoints
+     MOBILE RESPONSIVE - tablet & phone breakpoints
      ==================================================================== */
 
-  /* Tablet — 900px and below */
+  /* Tablet - 900px and below */
   @media (max-width: 900px) {
     .topbar {
       padding: 10px 16px;
@@ -1262,7 +1262,7 @@ INDEX_HTML = r"""<!doctype html>
     .viz-stage { min-height: 480px; }
   }
 
-  /* Phone — 640px and below */
+  /* Phone - 640px and below */
   @media (max-width: 640px) {
     html, body { font-size: 13px; }
 
@@ -1348,7 +1348,7 @@ INDEX_HTML = r"""<!doctype html>
       max-height: 360px;
     }
 
-    /* Buttons — bigger tap area on phone */
+    /* Buttons - bigger tap area on phone */
     .btn {
       padding: 8px 12px;
       font-size: 10px;
@@ -1358,7 +1358,7 @@ INDEX_HTML = r"""<!doctype html>
       font-size: 9px;
     }
 
-    /* Technique catalog — 1 column on phone */
+    /* Technique catalog - 1 column on phone */
     .tech-grid {
       grid-template-columns: 1fr;
       gap: 10px;
@@ -1419,7 +1419,7 @@ INDEX_HTML = r"""<!doctype html>
     /* Validation */
     .validation li { font-size: 10px; word-break: break-word; }
 
-    /* Toast — full width on phones */
+    /* Toast - full width on phones */
     .toast {
       left: 12px; right: 12px; bottom: 12px;
       transform: translateY(100px);
@@ -1427,7 +1427,7 @@ INDEX_HTML = r"""<!doctype html>
     .toast.show { transform: translateY(0); }
   }
 
-  /* Very small phones — 380px and below */
+  /* Very small phones - 380px and below */
   @media (max-width: 380px) {
     main { padding: 12px 10px; }
     .topbar { padding: 6px 10px; }
@@ -1437,7 +1437,7 @@ INDEX_HTML = r"""<!doctype html>
     .pill { font-size: 8px; padding: 3px 8px; letter-spacing: 0.1em; }
   }
 
-  /* Touch devices — larger tap targets */
+  /* Touch devices - larger tap targets */
   @media (hover: none) and (pointer: coarse) {
     .btn, .tab, .remove-btn, .chip-x,
     input[type="text"], select {
@@ -1522,7 +1522,7 @@ INDEX_HTML = r"""<!doctype html>
             <div class="field">
               <label>Confidence</label>
               <select id="confidence">
-                <option value="">— (not set)</option>
+                <option value="">- (not set)</option>
                 <option value="confirmed">Confirmed</option>
                 <option value="likely">Likely</option>
                 <option value="tentative">Tentative</option>
@@ -1598,7 +1598,7 @@ INDEX_HTML = r"""<!doctype html>
         </div>
 
         <div class="help-snippet">
-          <b>Quick tip:</b> Entity IDs (like <code>e1</code>, <code>e2</code>) are your shorthand — use them to reference entities in Chain Positions and Relations. The Workbench re-maps everything on export.
+          <b>Quick tip:</b> Entity IDs (like <code>e1</code>, <code>e2</code>) are your shorthand - use them to reference entities in Chain Positions and Relations. The Workbench re-maps everything on export.
         </div>
       </div>
     </div>
@@ -1661,9 +1661,9 @@ INDEX_HTML = r"""<!doctype html>
           <button class="btn small" onclick="vizZoom(0.833)">−</button>
           <button class="btn small" onclick="vizReset()">Reset</button>
           <div class="viz-info" id="viz-info">
-            <span class="kv"><span class="k">Positions</span><span class="v" id="viz-stat-pos">—</span></span>
-            <span class="kv"><span class="k">Relations</span><span class="v" id="viz-stat-rel">—</span></span>
-            <span class="kv"><span class="k">Techniques</span><span class="v" id="viz-stat-tech">—</span></span>
+            <span class="kv"><span class="k">Positions</span><span class="v" id="viz-stat-pos">-</span></span>
+            <span class="kv"><span class="k">Relations</span><span class="v" id="viz-stat-rel">-</span></span>
+            <span class="kv"><span class="k">Techniques</span><span class="v" id="viz-stat-tech">-</span></span>
           </div>
         </div>
         <div class="viz-canvas-wrap" id="viz-canvas-wrap">
@@ -1694,8 +1694,8 @@ INDEX_HTML = r"""<!doctype html>
     <h1>Interop · <em>STIX 2.1</em>.</h1>
     <p class="lead">
       Convert between IIM chains and STIX 2.1 bundles in both directions.
-      <strong style="color: var(--bone);">IIM -> STIX is lossless</strong> — every IIM concept survives with <code>x_iim_*</code> custom properties.
-      <strong style="color: var(--amber);">STIX -> IIM is an enrichment workflow</strong> — STIX lacks role semantics, ordered chains, and infrastructure techniques, so the import infers what it can, marks everything uncertain, and produces a report of what needs analyst review.
+      <strong style="color: var(--bone);">IIM -> STIX is lossless</strong> - every IIM concept survives with <code>x_iim_*</code> custom properties.
+      <strong style="color: var(--amber);">STIX -> IIM is an enrichment workflow</strong> - STIX lacks role semantics, ordered chains, and infrastructure techniques, so the import infers what it can, marks everything uncertain, and produces a report of what needs analyst review.
     </p>
 
     <div class="builder-grid">
@@ -1749,7 +1749,7 @@ INDEX_HTML = r"""<!doctype html>
         </div>
 
         <div class="help-snippet" style="margin-top: 16px;">
-          <b>About STIX imports:</b> roles inferred from STIX <code>infrastructure_types</code> and techniques recovered from attack-pattern references are marked <code>tentative</code>. Any chain with inferred annotations carries <code>needs_review: true</code> — treat it as a starting point, not a finished analysis.
+          <b>About STIX imports:</b> roles inferred from STIX <code>infrastructure_types</code> and techniques recovered from attack-pattern references are marked <code>tentative</code>. Any chain with inferred annotations carries <code>needs_review: true</code> - treat it as a starting point, not a finished analysis.
         </div>
       </div>
     </div>
@@ -1763,7 +1763,7 @@ INDEX_HTML = r"""<!doctype html>
     </p>
 
     <div class="tech-controls">
-      <input type="text" id="tech-search" placeholder="Search — e.g. 'dns', 'geofence', 'rotation'...">
+      <input type="text" id="tech-search" placeholder="Search - e.g. 'dns', 'geofence', 'rotation'...">
       <select id="tech-filter">
         <option value="">All Categories</option>
         <option value="hosting">Hosting</option>
@@ -1781,7 +1781,7 @@ INDEX_HTML = r"""<!doctype html>
   <section class="panel" id="panel-validator">
     <h1>Validate <em>any</em> chain or pattern.</h1>
     <p class="lead">
-      Paste an existing IIM chain or pattern JSON on the left. The Workbench runs a full structural check — entity references, role validity, technique IDs against the loaded catalog, relation integrity, sequence ordering.
+      Paste an existing IIM chain or pattern JSON on the left. The Workbench runs a full structural check - entity references, role validity, technique IDs against the loaded catalog, relation integrity, sequence ordering.
     </p>
 
     <div class="validator-grid">
@@ -1814,42 +1814,42 @@ INDEX_HTML = r"""<!doctype html>
   <section class="panel" id="panel-help">
     <h1>How this <em>works</em>.</h1>
     <p class="lead">
-      The IIM Workbench is a local tool for building and validating IIM chains and patterns. Nothing leaves your machine — the Flask server runs on localhost and the technique catalog is loaded from a local JSON file.
+      The IIM Workbench is a local tool for building and validating IIM chains and patterns. Nothing leaves your machine - the Flask server runs on localhost and the technique catalog is loaded from a local JSON file.
     </p>
 
     <div class="card">
       <div class="card-head"><h3>What you can do</h3></div>
       <ul style="padding-left: 20px; font-size: 12px; color: var(--bone-dim); line-height: 1.9;">
-        <li><b style="color: var(--plankton);">Build a chain</b> — add entities, assign role positions, annotate techniques, declare relations. The JSON output updates live.</li>
-        <li><b style="color: var(--plankton);">Browse techniques</b> — full searchable catalog with definitions, indicators, examples, and ATT&amp;CK cross-references.</li>
-        <li><b style="color: var(--plankton);">Validate</b> — paste any IIM chain or pattern and get a structured validation report with errors and warnings.</li>
-        <li><b style="color: var(--plankton);">Export to pattern</b> — abstract a concrete chain into a reusable feed pattern (entity values stripped, shape preserved).</li>
-        <li><b style="color: var(--plankton);">Export to STIX 2.1</b> — complete bundle with Infrastructure, Indicator, Attack-Pattern, and Relationship objects. Deterministic UUIDs make round-trips stable.</li>
+        <li><b style="color: var(--plankton);">Build a chain</b> - add entities, assign role positions, annotate techniques, declare relations. The JSON output updates live.</li>
+        <li><b style="color: var(--plankton);">Browse techniques</b> - full searchable catalog with definitions, indicators, examples, and ATT&amp;CK cross-references.</li>
+        <li><b style="color: var(--plankton);">Validate</b> - paste any IIM chain or pattern and get a structured validation report with errors and warnings.</li>
+        <li><b style="color: var(--plankton);">Export to pattern</b> - abstract a concrete chain into a reusable feed pattern (entity values stripped, shape preserved).</li>
+        <li><b style="color: var(--plankton);">Export to STIX 2.1</b> - complete bundle with Infrastructure, Indicator, Attack-Pattern, and Relationship objects. Deterministic UUIDs make round-trips stable.</li>
       </ul>
     </div>
 
     <div class="card" style="margin-top: 16px;">
       <div class="card-head"><h3>API endpoints</h3></div>
       <div style="font-family: var(--font-mono); font-size: 11px; color: var(--bone-dim); line-height: 2;">
-        <div><span style="color: var(--amber);">GET</span>  <code>/api/health</code> &nbsp;— liveness + catalog version</div>
-        <div><span style="color: var(--amber);">GET</span>  <code>/api/catalog</code> &nbsp;— full technique catalog</div>
+        <div><span style="color: var(--amber);">GET</span>  <code>/api/health</code> &nbsp;- liveness + catalog version</div>
+        <div><span style="color: var(--amber);">GET</span>  <code>/api/catalog</code> &nbsp;- full technique catalog</div>
         <div><span style="color: var(--amber);">GET</span>  <code>/api/techniques?q=&lt;search&gt;&amp;category=&lt;cat&gt;</code></div>
-        <div><span style="color: var(--amber);">GET</span>  <code>/api/techniques/&lt;ID&gt;</code> &nbsp;— e.g. <code>/api/techniques/IIM-T019</code></div>
-        <div><span style="color: var(--plankton);">POST</span> <code>/api/validate/chain</code> &nbsp;— body: chain JSON</div>
-        <div><span style="color: var(--plankton);">POST</span> <code>/api/validate/pattern</code> &nbsp;— body: pattern JSON</div>
-        <div><span style="color: var(--plankton);">POST</span> <code>/api/export/stix</code> &nbsp;— body: chain JSON -> STIX bundle</div>
-        <div><span style="color: var(--plankton);">POST</span> <code>/api/export/pattern</code> &nbsp;— body: {chain, pattern_id, name, match_semantics}</div>
+        <div><span style="color: var(--amber);">GET</span>  <code>/api/techniques/&lt;ID&gt;</code> &nbsp;- e.g. <code>/api/techniques/IIM-T019</code></div>
+        <div><span style="color: var(--plankton);">POST</span> <code>/api/validate/chain</code> &nbsp;- body: chain JSON</div>
+        <div><span style="color: var(--plankton);">POST</span> <code>/api/validate/pattern</code> &nbsp;- body: pattern JSON</div>
+        <div><span style="color: var(--plankton);">POST</span> <code>/api/export/stix</code> &nbsp;- body: chain JSON -> STIX bundle</div>
+        <div><span style="color: var(--plankton);">POST</span> <code>/api/export/pattern</code> &nbsp;- body: {chain, pattern_id, name, match_semantics}</div>
       </div>
     </div>
 
     <div class="card" style="margin-top: 16px;">
       <div class="card-head"><h3>CLI mode</h3></div>
       <div style="font-family: var(--font-mono); font-size: 11px; color: var(--bone-dim); line-height: 1.9;">
-        <p><code>python iim_workbench.py</code> — start the server (default port 5000)</p>
-        <p><code>python iim_workbench.py --port 8080</code> — custom port</p>
-        <p><code>python iim_workbench.py --validate chain.json</code> — validate from CLI, exit 0/1</p>
-        <p><code>python iim_workbench.py --stix chain.json</code> — export to STIX and print</p>
-        <p><code>python iim_workbench.py --catalog /path/to/catalog.json</code> — custom catalog location</p>
+        <p><code>python iim_workbench.py</code> - start the server (default port 5000)</p>
+        <p><code>python iim_workbench.py --port 8080</code> - custom port</p>
+        <p><code>python iim_workbench.py --validate chain.json</code> - validate from CLI, exit 0/1</p>
+        <p><code>python iim_workbench.py --stix chain.json</code> - export to STIX and print</p>
+        <p><code>python iim_workbench.py --catalog /path/to/catalog.json</code> - custom catalog location</p>
       </div>
     </div>
   </section>
@@ -2008,12 +2008,12 @@ function renderChainList() {
     return;
   }
   const entOptions = state.entities.map(e =>
-    `<option value="${e.id}">${e.id} — ${escapeHtml(e.value || '(empty)')}</option>`).join('');
+    `<option value="${e.id}">${e.id} - ${escapeHtml(e.value || '(empty)')}</option>`).join('');
   el.innerHTML = state.chain.map((p, i) => `
     <div class="chain-pos" data-role="${p.role}">
       <div class="pos-idx">${i}</div>
       <select onchange="updateChainPos(${i}, 'entity_id', this.value)">
-        <option value="">— select entity —</option>
+        <option value="">- select entity -</option>
         ${entOptions.replaceAll(`value="${p.entity_id}"`, `value="${p.entity_id}" selected`)}
       </select>
       <select onchange="updateChainPos(${i}, 'role', this.value)">
@@ -2122,14 +2122,14 @@ function renderValidation(data, targetId) {
   if (errCount > 0) {
     html += '<ul>';
     for (const e of data.errors) {
-      html += `<li class="err"><span class="path">[ERROR]</span> <b>${escapeHtml(e.path)}</b> — ${escapeHtml(e.message)}</li>`;
+      html += `<li class="err"><span class="path">[ERROR]</span> <b>${escapeHtml(e.path)}</b> - ${escapeHtml(e.message)}</li>`;
     }
     html += '</ul>';
   }
   if (warnCount > 0) {
     html += '<ul>';
     for (const w of data.warnings) {
-      html += `<li class="warn"><span class="path">[WARN]</span> <b>${escapeHtml(w.path)}</b> — ${escapeHtml(w.message)}</li>`;
+      html += `<li class="warn"><span class="path">[WARN]</span> <b>${escapeHtml(w.path)}</b> - ${escapeHtml(w.message)}</li>`;
     }
     html += '</ul>';
   }
@@ -2269,7 +2269,7 @@ function showTechnique(tid) {
       <h4>Related ATT&amp;CK Techniques</h4>
       <p>${t.attack_related.map(a => `<span class="chip">${a}</span>`).join(' ')}</p>
       <p style="font-size: 10px; color: var(--bone-darker); margin-top: 8px;">
-        Note: these are <em>conceptually adjacent</em> — not equivalences. ATT&amp;CK describes endpoint behavior; IIM describes infrastructure.
+        Note: these are <em>conceptually adjacent</em> - not equivalences. ATT&amp;CK describes endpoint behavior; IIM describes infrastructure.
       </p>
     ` : ''}
 
@@ -2370,7 +2370,7 @@ const vizState = {
   dragStart: null,
 };
 
-// Reference chains — curated library
+// Reference chains - curated library
 const VIZ_EXAMPLES = [
   {
     name: 'Gamaredon · RAR-HTA Delivery (MB-0001)',
@@ -2494,7 +2494,7 @@ function vizLoadExample(idx) {
 function vizFromBuilder() {
   const chain = buildChainJson();
   if (!state.entities.length) {
-    toast('Chain Builder is empty — add entities first', 'error');
+    toast('Chain Builder is empty - add entities first', 'error');
     return;
   }
   document.getElementById('viz-input').value = JSON.stringify(chain, null, 2);
@@ -3020,8 +3020,8 @@ function interopSetDir(dir) {
   document.getElementById('interop-from-builder').style.display =
     dir === 'export' ? '' : 'none';
   document.getElementById('interop-dir-desc').innerHTML = dir === 'export'
-    ? 'Convert an IIM chain to a STIX 2.1 bundle. <b style="color: var(--plankton);">Lossless</b> — custom properties preserve every IIM concept.'
-    : 'Convert a STIX 2.1 bundle to an IIM chain. <b style="color: var(--amber);">Heuristic</b> — roles and techniques are inferred and marked for review.';
+    ? 'Convert an IIM chain to a STIX 2.1 bundle. <b style="color: var(--plankton);">Lossless</b> - custom properties preserve every IIM concept.'
+    : 'Convert a STIX 2.1 bundle to an IIM chain. <b style="color: var(--amber);">Heuristic</b> - roles and techniques are inferred and marked for review.';
   interopClearOutput();
 }
 
@@ -3029,7 +3029,7 @@ function interopFromBuilder() {
   if (interopState.direction !== 'export') return;
   const chain = buildChainJson();
   if (!state.entities.length) {
-    toast('Chain Builder is empty — add entities first', 'error');
+    toast('Chain Builder is empty - add entities first', 'error');
     return;
   }
   document.getElementById('interop-input').value = JSON.stringify(chain, null, 2);
@@ -3305,7 +3305,7 @@ def cli_stix(path: str, catalog_path: str | None) -> int:
 
 
 def main() -> int:
-    ap = argparse.ArgumentParser(description="IIM Workbench — local tool for IIM chain/pattern work")
+    ap = argparse.ArgumentParser(description="IIM Workbench - local tool for IIM chain/pattern work")
     ap.add_argument("--port", type=int, default=5000, help="HTTP port (default 5000)")
     ap.add_argument("--host", default="127.0.0.1", help="Bind host (default 127.0.0.1)")
     ap.add_argument("--catalog", help="Path to iim-techniques-v1.0.json")
