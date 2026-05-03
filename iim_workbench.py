@@ -15,7 +15,7 @@ or from the path given by IIM_CATALOG environment variable.
 Author:       Robin Dost
 Reference:    https://iim.malwarebox.eu
 Web Version:  https://workbench.iim.malwarebox.eu
-Last Update:  05/01/26
+Last Update:  05/03/26
 
 """
 from __future__ import annotations
@@ -1469,6 +1469,7 @@ INDEX_HTML = r"""<!doctype html>
     </div>
   </div>
   <div class="status-pills">
+    <span class="pill"><a style="color: inherit; text-decoration: inherit" target="_blank" href="https://github.com/MalwareboxEU/IIM-Workbench">GitHub</a></span>
     <span class="pill">Spec {{ spec_version }}</span>
     <span class="pill">Catalog {{ catalog_version }}</span>
     <span class="pill">{{ technique_count }} Techniques</span>
@@ -1483,6 +1484,7 @@ INDEX_HTML = r"""<!doctype html>
   <div class="tab" data-tab="techniques">Technique Catalog <span class="count">{{ technique_count }}</span></div>
   <div class="tab" data-tab="validator">Validator</div>
   <div class="tab" data-tab="help">Help</div>
+
 </div>
 
 <main>
